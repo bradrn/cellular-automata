@@ -1,0 +1,14 @@
+#MCell 4.00
+#GAME Generations
+#RULE /2/3
+#SPEED 2000
+#BOARD 4x4
+#CCOLORS 3
+#COLORING 1
+#WRAP 1
+#PALETTE standard palette
+#D Brian's Brain automaton
+#D Encoded by CA.Format.MCell
+#L .A$.2BA$A2B$2.A
+#DIV #SYSTEM,act=1
+#DIV #NOISE,act=1,cycl=1,cell=3,stt=1

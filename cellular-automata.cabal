@@ -1,0 +1,64 @@
+name:                cellular-automata
+version:             0.1.0.0
+synopsis:            A generic cellular automaton simulation library.
+-- description:
+-- homepage:            https://github.com/githubuser/cellular-automata#readme
+license:             MIT
+license-file:        LICENSE
+author:              Brad Neimann
+copyright:           2017 Brad Neimann
+build-type:          Simple
+cabal-version:       >=1.10
+-- extra-source-files:  README.md
+
+library
+  ghc-options:         -Wall -funfolding-use-threshold=16 -O2 -optc-O3
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+  exposed-modules:     CA
+                     , CA.Internal
+                     , CA.Utils
+                     , CA.ALPACA
+                     , CA.Format.MCell
+  other-modules:       CA.ALPACA.Parse
+                     , CA.ALPACA.Run
+  build-depends:       base          >= 4.7 && < 5
+                     , megaparsec    >= 6.3 && < 6.5
+                     , containers    >= 0.5 && < 0.6
+                     , transformers  >= 0.5 && < 0.6
+                     , comonad       >= 5.0 && < 5.1
+                     , microlens     >= 0.4 && < 0.5
+                     , microlens-mtl >= 0.1 && < 0.2
+                     , microlens-th  >= 0.4 && < 0.5
+                     , MonadRandom   >= 0.5 && < 0.6
+                     , split         >= 0.2 && < 0.3
+                     , safe          >= 0.3 && < 0.4
+
+test-suite tests
+  ghc-options:         -Wall -threaded -funfolding-use-threshold=16 -O2 -optc-O3
+  hs-source-dirs:      tests
+  main-is:             Main.hs
+  other-modules:       CA.Tests
+                     , CA.Utils.Tests
+                     , CA.Format.MCell.Tests
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  build-depends:       base >= 4.7 && < 5
+                     , cellular-automata
+                     , tasty            >= 0.11 && < 1.1
+                     , tasty-quickcheck >= 0.9  && < 0.10
+                     , tasty-golden     >= 2.3  && < 2.4
+                     , bytestring       >= 0.10 && < 0.11
+                     , QuickCheck       >= 2.10 && < 2.11
+
+benchmark bench
+  ghc-options:         -Wall -threaded -funfolding-use-threshold=16 -O2 -optc-O3
+  hs-source-dirs:      bench
+  main-is:             Main.hs
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  build-depends:       base      >= 4.7 && < 5
+                     , cellular-automata
+                     , criterion >= 1.2 && < 1.4
+                     , deepseq   >= 1.4 && < 1.5
+                     , random    >= 1.1 && < 1.2
