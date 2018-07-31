@@ -51,16 +51,3 @@ test-suite tests
                      , tasty-golden     >= 2.3  && < 2.4
                      , bytestring       >= 0.10 && < 0.11
                      , QuickCheck       >= 2.10 && < 2.12
-
-benchmark bench
-  ghc-options:         -Wall -threaded -funfolding-use-threshold=16 -O2 -optc-O3
-  hs-source-dirs:      bench
-  main-is:             Main.hs
-  default-language:    Haskell2010
-  type:                exitcode-stdio-1.0
-  build-depends:       base      >= 4.7 && < 5
-                     , cellular-automata
-                     , criterion >= 1.2 && < 1.5
-                     , deepseq   >= 1.4 && < 1.5
-                     , random    >= 1.1 && < 1.2
-                     , finite-typelits >= 0.1 && < 0.2
