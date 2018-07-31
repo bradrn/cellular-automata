@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-unused-do-bind #-}
 {-# LANGUAGE BangPatterns    #-}
 {-# LANGUAGE DataKinds       #-}
+{-# LANGUAGE DeriveFunctor   #-}
 {-# LANGUAGE KindSignatures  #-}
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -47,9 +48,15 @@ newtype Name (a :: DefnType) = Name { getName :: String } deriving (Show, Eq)
 data ALPACA = ALPACA [Defn] (Maybe (Universe State))
 instance Show ALPACA where
     show (ALPACA defns _) = "ALPACA " ++ show defns ++ " <<initial pattern>>"
-data Defn = StateDefn' StateDefn | ClassDefn' ClassDefn | NbhdDefn' NbhdDefn deriving (Show)
-data StateDefn = StateDefn State (Name 'StateType) (Maybe Char) [Name 'ClassType] [Rule]
-    deriving (Show)
+data Defn = StateDefn' (StateDefn State) | ClassDefn' ClassDefn | NbhdDefn' NbhdDefn deriving (Show)
+-- `StateDefn` is a bit problematic. We want states to be represented by
+-- `Finite n` values, but we have no way of determining `n` ahead of time.
+-- However, by leaving `intType` polymorphic, we can use the unbounded (for our
+-- purposes) `State` type in this module, and then convert it to `Finite n` when
+-- we have enough information (i.e. in the CA.ALPACA module). A `Functor`
+-- instance is provided for convenience.
+data StateDefn intType = StateDefn intType (Name 'StateType) (Maybe Char) [Name 'ClassType] [Rule]
+    deriving (Show, Functor)
 data ClassDefn = ClassDefn (Name 'ClassType) [Name 'ClassType] [Rule]
     deriving (Show)
 data NbhdDefn = NbhdDefn (Name 'NbhdType) Neighbourhood

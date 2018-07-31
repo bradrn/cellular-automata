@@ -2,6 +2,7 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE ViewPatterns               #-}
 
@@ -11,6 +12,7 @@ import GHC.Generics (Generic)
 
 import Control.DeepSeq (NFData)
 import Criterion.Main
+import Data.Finite (finite)
 import System.Random
 
 import CA
@@ -65,5 +67,7 @@ haskellLife = evolve $ return . \g ->
                                             , not ((dx == 0) && (dy == 0))]
 
 alpacaLife :: RandomGen g => Universe Int -> Rand g (Universe Int)
-alpacaLife = evolve $ either error fst $ runALPACA
-    "state Dead \" \" to Alive when 3 Alive and 5 Dead; state Alive \"*\" to Dead when 4 Alive or 7 Dead."
+alpacaLife =
+    let rule = either error id $ runALPACA "state Dead \" \" to Alive when 3 Alive and 5 Dead; state Alive \"*\" to Dead when 4 Alive or 7 Dead."
+    in case rule of
+        SomeRule r -> ((fmap . fmap) fromIntegral) . evolve r . fmap fromIntegral
