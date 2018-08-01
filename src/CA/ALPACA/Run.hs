@@ -40,7 +40,7 @@ runStateDefn (StateDefn s _ _ classes rules) = \grid ->
         else
             return Nothing
 
-collectRules :: [Name 'ClassType] -> (DefnsM n) g [Rule]
+collectRules :: [Name 'ClassType] -> DefnsM n g [Rule]
 collectRules = fmap concat . traverse go
   where
     go c = do
