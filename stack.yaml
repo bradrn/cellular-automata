@@ -39,9 +39,7 @@ packages:
 - .
 # Dependency packages to be pulled from upstream that are not in the resolver
 # (e.g., acme-missiles-0.3)
-extra-deps:
-- gtk3-0.14.8
-- gio-0.13.4.1
+# extra-deps: []
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
