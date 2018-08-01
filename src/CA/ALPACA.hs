@@ -27,6 +27,12 @@ import CA
 -- run-time, not compile-time, so it's existentially quantified.
 data SomeRule g = forall n. KnownNat n => SomeRule (CARule g (Finite n))
 
+-- | A convenience function to \'un-existentialise' a 'SomeRule' by turning it
+-- into a 'CARule'. Note that if you give it a state outside the bounds of the
+-- original 'Finite', it gives an out-of-bounds error.
+unSomeRule :: SomeRule g -> CARule g Integer
+unSomeRule (SomeRule r) = fmap getFinite . r . fmap finite
+
 -- | Converts an ALPACA specification to a 'CARule'. The 'CARule' returned
 -- operates on a 'Finite' state (existentially protected using 'SomeRule').
 runALPACA :: forall g. RandomGen g => String -> Either String (SomeRule g)
