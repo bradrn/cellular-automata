@@ -10,7 +10,7 @@ Maintainer : brad.neimann@hotmail.com
 Implements a parser for version 1.0 of the ALPACA language. Documentation is
 available at <https://github.com/catseye/ALPACA/blob/fcd5a8bdd579c209475dedd2e221b8c437d5ca21/doc/ALPACA.markdown>
 -}
-module CA.ALPACA (runALPACA, SomeRule(..)) where
+module CA.ALPACA (runALPACA, SomeRule(..), unSomeRule) where
 
 import Data.Bifunctor (second)
 import Data.Proxy
