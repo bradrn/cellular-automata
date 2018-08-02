@@ -187,7 +187,10 @@ term = AdjacencyPred <$> lexeme L.decimal
    <|> ExpressionTerm <$> between (symbol "(") (symbol ")") expression
    <|> Not <$> (symbol "not" *> term)
    <|> BoolPrim <$> boolPrim
-   <|> RelationalPred <$> stateRef <*> eitherP (optional (symbol "=") *> stateRef) classRef
+   <|> RelationalPred <$> stateRef <*> eitherP' (optional (symbol "=") *> stateRef) classRef
+ where
+   -- This is the same as 'eitherP', but tries the right option before the left
+   eitherP' a b = (Right <$> b) <|> (Left <$> a)
 
 boolPrim :: Parser BoolPrim
 boolPrim = BPTrue  <$ symbol "true"
