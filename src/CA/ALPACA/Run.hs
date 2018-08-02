@@ -35,21 +35,20 @@ runStateDefn :: RandomGen g => (StateDefn (Finite n)) -> CARulePart n g (Maybe (
 runStateDefn (StateDefn s _ _ classes rules) = \grid ->
     let s' = extract grid in
         if s == s' then do
-            inheritedRules <- collectRules classes
+            inheritedRules <- view _2 <&> flip collectRules classes
             runRules (rules ++ inheritedRules) grid
         else
             return Nothing
 
-collectRules :: [Name 'ClassType] -> DefnsM n g [Rule]
-collectRules = fmap concat . traverse go
+-- The following function is NOT in the DefnsM monad; it seems to force a value
+-- too early, sometimes causing infinite loops when there shouldn't be any.
+-- Plus, the code is actually simpler this way :)
+collectRules :: [ClassDefn] -> [Name 'ClassType] -> [Rule]
+collectRules classes = concatMap go
   where
-    go c = do
-      classes <- view _2
-      case find isRightClass classes of
-          Just (ClassDefn _ supers rules) -> do
-              supersRules <- collectRules supers
-              return $ rules ++ supersRules
-          Nothing -> return []
+    go c = case find isRightClass classes of
+               Just (ClassDefn _ supers rules) -> rules ++ concatMap go supers
+               Nothing                         -> []
       where
         isRightClass (ClassDefn name _ _) = c == name
 
