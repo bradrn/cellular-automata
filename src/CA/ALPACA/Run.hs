@@ -40,9 +40,6 @@ runStateDefn (StateDefn s _ _ classes rules) = \grid ->
         else
             return Nothing
 
--- The following function is NOT in the DefnsM monad; it seems to force a value
--- too early, sometimes causing infinite loops when there shouldn't be any.
--- Plus, the code is actually simpler this way :)
 collectRules :: [ClassDefn] -> [Name 'ClassType] -> [Rule]
 collectRules classes = concatMap (go [])
   where
