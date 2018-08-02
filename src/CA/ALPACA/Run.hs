@@ -44,11 +44,14 @@ runStateDefn (StateDefn s _ _ classes rules) = \grid ->
 -- too early, sometimes causing infinite loops when there shouldn't be any.
 -- Plus, the code is actually simpler this way :)
 collectRules :: [ClassDefn] -> [Name 'ClassType] -> [Rule]
-collectRules classes = concatMap go
+collectRules classes = concatMap (go [])
   where
-    go c = case find isRightClass classes of
-               Just (ClassDefn _ supers rules) -> rules ++ concatMap go supers
-               Nothing                         -> []
+    go visited c =
+        if c `elem` visited
+        then []
+        else case find isRightClass classes of
+            Just (ClassDefn _ supers rules) -> rules ++ concatMap (go (c:visited)) supers
+            Nothing -> []
       where
         isRightClass (ClassDefn name _ _) = c == name
 
