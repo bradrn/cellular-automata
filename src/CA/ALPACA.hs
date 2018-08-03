@@ -1,4 +1,5 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 
 {-|
@@ -10,7 +11,7 @@ Maintainer : brad.neimann@hotmail.com
 Implements a parser for version 1.0 of the ALPACA language. Documentation is
 available at <https://github.com/catseye/ALPACA/blob/fcd5a8bdd579c209475dedd2e221b8c437d5ca21/doc/ALPACA.markdown>
 -}
-module CA.ALPACA (runALPACA, SomeRule(..), unSomeRule) where
+module CA.ALPACA (runALPACA, AlpacaData(..), getRule) where
 
 import Data.Bifunctor (second)
 import Data.Proxy
@@ -23,29 +24,33 @@ import CA.ALPACA.Parse
 import CA.ALPACA.Run
 import CA
 
--- | A 'CARule' with 'Finite' state type. However, the type @n@ is only known at
--- run-time, not compile-time, so it's existentially quantified.
-data SomeRule g = forall n. KnownNat n => SomeRule (CARule g (Finite n))
+-- | The data specified by an ALPACA definition. Existentially quantified over
+-- the number of states.
+data AlpacaData g = forall n. KnownNat n =>
+    AlpacaData { rule       :: CARule g (Finite n)
+               , initConfig :: Maybe (Universe (Finite n))
+               }
 
--- | A convenience function to \'un-existentialise' a 'SomeRule' by turning it
--- into a 'CARule'. Note that if you give it a state outside the bounds of the
--- original 'Finite', it gives an out-of-bounds error.
-unSomeRule :: SomeRule g -> CARule g Integer
-unSomeRule (SomeRule r) = fmap getFinite . r . fmap finite
+-- | A convenience function to convert the rule in an 'AlpacaData' to a rule
+-- with 'Integer' state. Note that if you give the generated 'CARule' a state
+-- outside the bounds of the original rule, it emits an exception.
+getRule :: AlpacaData g -> CARule g Integer
+getRule (AlpacaData{rule=r}) = fmap getFinite . r . fmap finite
 
 -- | Converts an ALPACA specification to a 'CARule'. The 'CARule' returned
 -- operates on a 'Finite' state (existentially protected using 'SomeRule').
-runALPACA :: forall g. RandomGen g => String -> Either String (SomeRule g)
+runALPACA :: forall g. RandomGen g => String -> Either String (AlpacaData g)
 runALPACA = second go . parseALPACA
   where
-    go :: ALPACA -> SomeRule g
-    go parsed = case someNatVal (maxState parsed + 1) of
+    go :: ALPACA -> AlpacaData g
+    go parsed@(ALPACA _ initConfig') = case someNatVal (maxState parsed + 1) of
         Nothing ->
             error "Error - CA.ALPACA.runALPACA.go.maxState returned a negative number. This is a bug - please report to the package maintainer."
         Just (SomeNat (Proxy :: Proxy n)) ->
             let defns = extractDefns parsed :: Defns n
-                fn    = run defns
-            in  SomeRule fn
+                rule  = run defns
+                initConfig = (fmap . fmap) (finite . toInteger) initConfig'
+            in  AlpacaData{..}
       where
         maxState :: ALPACA -> Integer
         maxState (ALPACA ds _) = foldr maxDefn 0 ds
