@@ -189,7 +189,7 @@ decodeMCell str = do
     parseBoard = P.parseMaybe @Void $ (,) <$> P.decimal <* P.char 'x' <*> P.decimal
 
     parseUniverse :: Maybe (Int, Int) -> String -> Maybe (Universe Int)
-    parseUniverse (fmap snd -> height) u =
+    parseUniverse (fmap fst -> height) u =
         let rows = splitOn "$" u
             parsed = traverse parseRow rows
         in (fromList . padEdge height) <$> parsed

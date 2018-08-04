@@ -52,7 +52,7 @@ data Point = Point (Coord X) (Coord Y) deriving (Show, Eq)
 -- __NOTE__: This is indexed using __positive integers__, so the top-left
 -- point is (0, 0) and the bottom-right point is (/m/, /n/).
 --
--- Internally, this is stored as a list of columns and a single \'focused' point,
+-- Internally, this is stored as a list of rows and a single \'focused' point,
 -- to form a 2D zipper.
 data Universe a = Universe (S.Seq (S.Seq a)) Point
     deriving (Show, Functor, Foldable, Traversable)
@@ -63,12 +63,12 @@ instance Eq a => Eq (Universe a) where
 
 -- | Allows the evolution of a cellular automaton using the 'extend' method.
 instance Comonad Universe where
-    extract (normalize -> Universe u (Point x y)) = S.index (S.index u (fromIntegral x)) (fromIntegral y)
+    extract (normalize -> Universe u (Point x y)) = S.index (S.index u (fromIntegral y)) (fromIntegral x)
     duplicate un@(Universe u p) = Universe u' p
       where
         (getCoord -> w, getCoord -> h) = size un
-        u' = S.fromFunction w $ \x ->
-             S.fromFunction h $ \y ->
+        u' = S.fromFunction h $ \y ->
+             S.fromFunction w $ \x ->
              Universe u (Point (Coord x) (Coord y))
 
 -- | Gives a few useful utility functions.
@@ -104,10 +104,10 @@ boundsHeight Bounds{..} = boundsBottom - boundsTop + 1
 
 -- | Returns the width and height of a 'Universe'.
 size :: Universe a -> (Coord 'X, Coord 'Y)
-size (Universe u _) = (Coord $ S.length u, Coord $ height u)
+size (Universe u _) = (Coord $ width u, Coord $ S.length u)
   where
-    height (v S.:<| _) = S.length v
-    height _           = 0
+    width (v S.:<| _) = S.length v
+    width _           = 0
 
 -- | Wraps the coordinates of the focus to within the allowed range. Generally
 -- you won't need to use this unless you're messing around with the internals of
@@ -134,15 +134,15 @@ modifyPoint (Point x y) f (Universe u p) = Universe u' p
 
 -- * Conversion from and to lists
 
--- | Converts a list of columns to a 'Universe'.
+-- | Converts a list of rows to a 'Universe'.
 fromList :: [[a]] -> Universe a
 fromList l = Universe (fmap S.fromList $ S.fromList $ l) (Point 0 0)
 
--- | Converts a 'Universe' to a list of columns.
+-- | Converts a 'Universe' to a list of rows.
 render :: Universe a -> [[a]]
 render (Universe u _) = toList $ fmap toList u
 
--- | Extracts a portion of a 'Universe' to a list of columns. Wraps around
+-- | Extracts a portion of a 'Universe' to a list of rows. Wraps around
 -- toroidally if a point outside the edges of the universe has been requested.
 clip :: Universe a -> Bounds -> [[a]]
 clip u Bounds{..} = (fmap . fmap) (flip peek u) ps

@@ -85,8 +85,8 @@ prop_render2 u = fromList (render u) == u
 prop_size :: NonEmptyList [a] -> Bool
 prop_size (NonEmpty l) = (Coord w, Coord h) == size (fromList l)
   where
-    w = length l
-    h = length (head l)
+    w = length (head l)
+    h = length l
 
 prop_clipInsideBounds :: Arbitrary a => Bounds -> Universe a -> Bool
 prop_clipInsideBounds bs u = let (bs', _) = clipInside u bs
