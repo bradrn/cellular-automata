@@ -28,9 +28,9 @@ import CA
 -- | The data specified by an ALPACA definition. Existentially quantified over
 -- the number of states.
 data AlpacaData g = forall n. KnownNat n =>
-    AlpacaData { rule       :: CARule g (Finite n)
-               , initConfig :: Maybe (Universe (Finite n))
-               , stateData  :: Map (Finite n) (String, Maybe Char)
+    AlpacaData { rule       :: CARule g (Finite n)                 -- ^ The rule itself
+               , initConfig :: Maybe (Universe (Finite n))         -- ^ The initial configuration
+               , stateData  :: Map (Finite n) (String, Maybe Char) -- ^ The name and representation declaration of each character
                }
 
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
