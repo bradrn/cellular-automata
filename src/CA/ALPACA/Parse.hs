@@ -28,11 +28,12 @@ module CA.ALPACA.Parse
 import Control.Applicative (empty)
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Monoid (First(..))
-import Data.Bifunctor (first)
+import Data.Bifunctor (bimap)
 import Data.Void (Void)
 
 import Control.Monad.Trans.Class (lift)
 import qualified Control.Monad.Trans.State.Strict as S
+import qualified Data.Map.Strict as Map
 import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -81,8 +82,17 @@ type Neighbourhood = [[Direction]]
 
 type Parser = ParsecT Void String (S.State State)
 
-parseALPACA :: String -> Either String ALPACA
-parseALPACA = first parseErrorPretty . flip S.evalState 0 . runParserT alpaca ""
+parseALPACA :: String -> Either String (ALPACA, Map.Map Int (String, Maybe Char))
+parseALPACA = bimap parseErrorPretty (with names) . flip S.evalState 0 . runParserT alpaca ""
+  where
+    with :: (a -> b) -> a -> (a, b)
+    with f a = (a, f a)
+
+    names :: ALPACA -> Map.Map Int (String, Maybe Char)
+    names (ALPACA defns _) = Map.fromList $ mapMaybe go defns
+      where
+        go (StateDefn' (StateDefn s (Name n) c _ _)) = Just (s, (n, c))
+        go _ = Nothing
 
 sc :: Parser ()
 sc = L.space space1 empty blockComment

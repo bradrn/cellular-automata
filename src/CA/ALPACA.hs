@@ -18,6 +18,7 @@ import Data.Proxy
 import GHC.TypeLits
 
 import Data.Finite
+import Data.Map.Strict (Map, mapKeys)
 import Lens.Micro
 
 import CA.ALPACA.Parse
@@ -29,6 +30,7 @@ import CA
 data AlpacaData g = forall n. KnownNat n =>
     AlpacaData { rule       :: CARule g (Finite n)
                , initConfig :: Maybe (Universe (Finite n))
+               , stateData  :: Map (Finite n) (String, Maybe Char)
                }
 
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
@@ -42,14 +44,15 @@ getRule (AlpacaData{rule=r}) = fmap getFinite . r . fmap finite
 runALPACA :: forall g. RandomGen g => String -> Either String (AlpacaData g)
 runALPACA = second go . parseALPACA
   where
-    go :: ALPACA -> AlpacaData g
-    go parsed@(ALPACA _ initConfig') = case someNatVal (maxState parsed + 1) of
+    go :: (ALPACA, Map Int (String, Maybe Char)) -> AlpacaData g
+    go (parsed@(ALPACA _ initConfig'), names) = case someNatVal (maxState parsed + 1) of
         Nothing ->
             error "Error - CA.ALPACA.runALPACA.go.maxState returned a negative number. This is a bug - please report to the package maintainer."
         Just (SomeNat (Proxy :: Proxy n)) ->
             let defns = extractDefns parsed :: Defns n
                 rule  = run defns
                 initConfig = (fmap . fmap) (finite . toInteger) initConfig'
+                stateData = mapKeys (finite . toInteger) names
             in  AlpacaData{..}
       where
         maxState :: ALPACA -> Integer
