@@ -18,10 +18,11 @@ import Prelude hiding (lookup)
 import Data.Bifunctor (second)
 import Data.Maybe (fromJust)
 import Data.Proxy
+import Data.Tuple (swap)
 import GHC.TypeLits
 
 import Data.Finite
-import Data.Map.Strict (Map, mapKeys, lookup)
+import Data.Map.Strict (Map, mapKeys, lookup, toList)
 import Lens.Micro
 
 import CA.ALPACA.Parse
@@ -34,6 +35,8 @@ data AlpacaData g = forall n. KnownNat n =>
     AlpacaData { rule       :: CARule g (Finite n)                 -- ^ The rule itself
                , initConfig :: Maybe (Universe (Finite n))         -- ^ The initial configuration
                , stateData  :: Finite n -> (String, Maybe Char)    -- ^ Returns the name and representation declaration of each character
+               , revLookup  :: Either String Char -> [Finite n]
+                 -- ^ Reverse of 'stateData': given a name or a representation declaration, returns the associated state(s).
                }
 
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
@@ -55,8 +58,10 @@ runALPACA = second go . parseALPACA
             let defns = extractDefns parsed :: Defns n
                 rule  = run defns
                 initConfig = (fmap . fmap) (finite . toInteger) initConfig'
+                namesMap = mapKeys (finite . toInteger) names
                 -- Each state SHOULD have a map entry, so it's fine using fromJust
-                stateData = fromJust . (flip lookup $ mapKeys (finite . toInteger) names)
+                stateData = fromJust . (flip lookup namesMap)
+                revLookup = search $ swap <$> toList namesMap
             in  AlpacaData{..}
       where
         maxState :: ALPACA -> Integer
@@ -73,3 +78,9 @@ runALPACA = second go . parseALPACA
             insertDefn (StateDefn' d) = let d' = fmap fromIntegral d in over _1 (d':)
             insertDefn (ClassDefn' d) = over _2 (d:)
             insertDefn (NbhdDefn'  d) = over _3 (d:)
+
+        search :: (Eq a, Eq b) => [((a, Maybe b), c)] -> Either a b -> [c]
+        search (((a', _      ), c):xs) s@(Left  a) | a == a' = c : (search xs s)
+        search (((_ , Just b'), c):xs) s@(Right b) | b == b' = c : (search xs s)
+        search (_                 :xs) s                     =      search xs s
+        search [] _ = []
