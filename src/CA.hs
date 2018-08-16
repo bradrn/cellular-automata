@@ -32,7 +32,7 @@ module CA ( -- * About comonadic cellular automata
           , Coord(..)
           , Point(..)
           , Universe
-          , CARule
+          , StochRule
           , Bounds(..)
           , boundsWidth
           , boundsHeight

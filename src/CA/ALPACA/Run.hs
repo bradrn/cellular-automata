@@ -23,15 +23,15 @@ import CA.Utils (Direction(..))
 
 type Defns n = ([StateDefn (Finite n)], [ClassDefn], [NbhdDefn])
 type DefnsM n g = R.ReaderT (Defns n) (S.Rand g)
-type CARulePart n a g = Universe (Finite n) -> DefnsM n a g
+type RulePart n a g = Universe (Finite n) -> DefnsM n a g
 
-run :: forall n g. RandomGen g => (Defns n) -> CARule g (Finite n)
+run :: forall n g. RandomGen g => (Defns n) -> StochRule g (Finite n)
 run defns = flip R.runReaderT defns . run' defns
  where
    run' :: (Defns n) -> Universe (Finite n) -> DefnsM n g (Finite n)
    run' (stateDefns, _, _) = withDefault extract (runMany runStateDefn) stateDefns
 
-runStateDefn :: RandomGen g => (StateDefn (Finite n)) -> CARulePart n g (Maybe (Finite n))
+runStateDefn :: RandomGen g => (StateDefn (Finite n)) -> RulePart n g (Maybe (Finite n))
 runStateDefn (StateDefn s _ _ classes rules) = \grid ->
     let s' = extract grid in
         if s == s' then do
@@ -52,21 +52,21 @@ collectRules classes = concatMap (go [])
       where
         isRightClass (ClassDefn name _ _) = c == name
 
-runRules :: RandomGen g => [Rule] -> CARulePart n g (Maybe (Finite n))
+runRules :: RandomGen g => [Rule] -> RulePart n g (Maybe (Finite n))
 runRules = runMany runRule
 
-runRule :: RandomGen g => Rule -> CARulePart n g (Maybe (Finite n))
+runRule :: RandomGen g => Rule -> RulePart n g (Maybe (Finite n))
 runRule (Rule sRef Nothing) = getRef sRef
 runRule (Rule sRef (Just expr)) = \grid -> exprTrue expr grid >>= bool (return Nothing) (getRef sRef grid)
 
-getRef :: StateRef -> CARulePart n g (Maybe (Finite n))
+getRef :: StateRef -> RulePart n g (Maybe (Finite n))
 getRef Me = pure . Just . extract
 getRef (StateID n) = const $
     withField _1 (\(StateDefn _ name _ _ _) -> n == name)
                  (\(StateDefn s _    _ _ _) -> s)
 getRef (DirRef ds) = \grid -> pure $ Just $ flip peeksRel grid $ moves ds
 
-exprTrue :: RandomGen g => Expression -> CARulePart n g Bool
+exprTrue :: RandomGen g => Expression -> RulePart n g Bool
 exprTrue (ExprLog t op x) = \grid -> getOp op <$> termTrue t grid <*> exprTrue x grid
 exprTrue (ExprLeaf t) = termTrue t
 
@@ -75,7 +75,7 @@ getOp And = (&&)
 getOp Or  = (||)
 getOp Xor = (/=)
 
-termTrue :: RandomGen g => Term -> CARulePart n g Bool
+termTrue :: RandomGen g => Term -> RulePart n g Bool
 termTrue (AdjacencyPred n nbhd sRef) = \grid ->
     resolve (fromMaybe (Left moore) nbhd) >>= \case
         Just nbhd' ->
@@ -108,12 +108,12 @@ termTrue (RelationalPred ref1 ref2) = \grid -> do
         Just ref1' -> matches ref2 ref1' grid
         Nothing    -> return False
 
-boolPrim :: RandomGen g => BoolPrim -> CARulePart n g Bool
+boolPrim :: RandomGen g => BoolPrim -> RulePart n g Bool
 boolPrim BPTrue = const $ return True
 boolPrim BPFalse = const $ return False
 boolPrim BPGuess = const $ S.lift $ getRandom
 
-matches :: Either StateRef (Name 'ClassType) -> (Finite n) -> CARulePart n g Bool
+matches :: Either StateRef (Name 'ClassType) -> (Finite n) -> RulePart n g Bool
 matches (Left s) s' = \grid -> getRef s grid <&> maybe False (==s')
 matches (Right c) s = const $ inClass c s
 

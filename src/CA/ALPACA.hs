@@ -32,7 +32,7 @@ import CA
 -- | The data specified by an ALPACA definition. Existentially quantified over
 -- the number of states.
 data AlpacaData g = forall n. KnownNat n =>
-    AlpacaData { rule       :: CARule g (Finite n)                 -- ^ The rule itself
+    AlpacaData { rule       :: StochRule g (Finite n)              -- ^ The rule itself
                , initConfig :: Maybe (Universe (Finite n))         -- ^ The initial configuration
                , stateData  :: Finite n -> (String, Maybe Char)    -- ^ Returns the name and representation declaration of each character
                , revLookup  :: Either String Char -> [Finite n]
@@ -40,12 +40,12 @@ data AlpacaData g = forall n. KnownNat n =>
                }
 
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
--- with 'Integer' state. Note that if you give the generated 'CARule' a state
+-- with 'Integer' state. Note that if you give the generated 'StochRule' a state
 -- outside the bounds of the original rule, it emits an exception.
-getRule :: AlpacaData g -> CARule g Integer
+getRule :: AlpacaData g -> StochRule g Integer
 getRule (AlpacaData{rule=r}) = fmap getFinite . r . fmap finite
 
--- | Converts an ALPACA specification to a 'CARule'. The 'CARule' returned
+-- | Converts an ALPACA specification to a 'StochRule'. The 'StochRule' returned
 -- operates on a 'Finite' state (existentially protected using 'SomeRule').
 runALPACA :: forall g. RandomGen g => String -> Either String (AlpacaData g)
 runALPACA = second go . parseALPACA

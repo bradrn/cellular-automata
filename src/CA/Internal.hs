@@ -82,7 +82,7 @@ instance ComonadStore Point Universe where
 
 -- | A convenient type signature for a stochastic cellular automaton update
 -- function.
-type CARule g a = Universe a -> Rand g a
+type StochRule g a = Universe a -> Rand g a
 
 -- | Specifies a portion of a 'Universe'.
 data Bounds = Bounds
@@ -120,7 +120,7 @@ normalize un@(Universe u (Point x y)) = Universe u (Point x' y')
     y' = y `mod` h
 
 -- | Applies a stochastic evolution function to a 'Universe'.
-evolve :: CARule g a -> (Universe a -> Rand g (Universe a))
+evolve :: StochRule g a -> (Universe a -> Rand g (Universe a))
 evolve ca = sequenceA . extend ca
 
 -- | Changes the value of a single 'Point' in a 'Universe'.
