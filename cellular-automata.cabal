@@ -19,6 +19,7 @@ library
                      , CA.Internal
                      , CA.Utils
                      , CA.ALPACA
+                     , CA.ALPACA.Stylesheets
                      , CA.Format.MCell
   other-modules:       CA.ALPACA.Parse
                      , CA.ALPACA.Run
