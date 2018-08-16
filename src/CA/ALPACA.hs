@@ -13,12 +13,15 @@ available at <https://github.com/catseye/ALPACA/blob/fcd5a8bdd579c209475dedd2e22
 -}
 module CA.ALPACA (runALPACA, AlpacaData(..), getRule) where
 
+import Prelude hiding (lookup)
+
 import Data.Bifunctor (second)
+import Data.Maybe (fromJust)
 import Data.Proxy
 import GHC.TypeLits
 
 import Data.Finite
-import Data.Map.Strict (Map, mapKeys)
+import Data.Map.Strict (Map, mapKeys, lookup)
 import Lens.Micro
 
 import CA.ALPACA.Parse
@@ -30,7 +33,7 @@ import CA
 data AlpacaData g = forall n. KnownNat n =>
     AlpacaData { rule       :: CARule g (Finite n)                 -- ^ The rule itself
                , initConfig :: Maybe (Universe (Finite n))         -- ^ The initial configuration
-               , stateData  :: Map (Finite n) (String, Maybe Char) -- ^ The name and representation declaration of each character
+               , stateData  :: Finite n -> (String, Maybe Char)    -- ^ Returns the name and representation declaration of each character
                }
 
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
@@ -52,7 +55,8 @@ runALPACA = second go . parseALPACA
             let defns = extractDefns parsed :: Defns n
                 rule  = run defns
                 initConfig = (fmap . fmap) (finite . toInteger) initConfig'
-                stateData = mapKeys (finite . toInteger) names
+                -- Each state SHOULD have a map entry, so it's fine using fromJust
+                stateData = fromJust . (flip lookup $ mapKeys (finite . toInteger) names)
             in  AlpacaData{..}
       where
         maxState :: ALPACA -> Integer
