@@ -7,8 +7,8 @@ Copyright  : (c) Brad Neimann 2017-2018
 License    : MIT
 Maintainer : brad.neimann@hotmail.com
 
-Implements a parser for version 1.0 of the ALPACA language. Documentation is
-available at <https://github.com/catseye/ALPACA/blob/fcd5a8bdd579c209475dedd2e221b8c437d5ca21/doc/ALPACA.markdown>
+Implements a parser for version 1.1 of the ALPACA language. Documentation is
+available at <https://github.com/catseye/ALPACA/blob/0b2d57b8739dc240969c62c8e1cd13c1863770e0/doc/ALPACA.markdown>
 -}
 module CA.ALPACA (runALPACA, SomeRule(..), unSomeRule) where
 
