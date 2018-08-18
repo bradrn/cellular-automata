@@ -88,10 +88,11 @@ type Rule u a = u a -> a
 
 -- | A convenient type synonym for a stochastic cellular automaton update
 -- function, where @u@ is the comonadic container data type, @g@ is the random
--- number generator, and @a@ is the state type. For instance,
--- @StochRule Point StdGen Int@ would be the type of a CA which acts on a
--- universe with cells indexed by 'Point', with each cell having type 'Int' and
--- using a 'StdGen' random number generator.
+-- number generator, and @a@ is the state type. It can be converted into a
+-- usable function using 'evolve'. For instance, @StochRule Point StdGen Int@
+-- would be the type of a CA which acts on a universe with cells indexed by
+-- 'Point', with each cell having type 'Int' and using a 'StdGen' random number
+-- generator.
 type StochRule u g a = u a -> Rand g a
 
 -- | Specifies a portion of a 'Universe'.
