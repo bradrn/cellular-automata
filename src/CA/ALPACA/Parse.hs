@@ -46,7 +46,7 @@ type State = Int
 
 data DefnType = StateType | ClassType | NbhdType
 newtype Name (a :: DefnType) = Name { getName :: String } deriving (Show, Eq)
-data ALPACA = ALPACA [Defn] (Maybe (Universe State))
+data ALPACA = ALPACA [Defn] (Maybe [[State]])
 instance Show ALPACA where
     show (ALPACA defns _) = "ALPACA " ++ show defns ++ " <<initial pattern>>"
 data Defn = StateDefn' (StateDefn State) | ClassDefn' ClassDefn | NbhdDefn' NbhdDefn deriving (Show)
@@ -115,7 +115,7 @@ name = Name <$> identifier
 alpaca :: Parser ALPACA
 alpaca = between sc eof $ do
     defns <- sepBy1 defn (symbol ";")
-    e <- (fmap . fmap . fmap) (getStates defns) end
+    e <- (fmap . fmap . fmap . fmap) (getStates defns) end
     return $ ALPACA defns e
   where
     end = Nothing <$  symbol "."
@@ -140,11 +140,8 @@ alpaca = between sc eof $ do
         firstWith :: Foldable t => (a -> Maybe b) -> t a -> Maybe b
         firstWith p = getFirst . foldMap (First . p)
 
-initConfig :: Parser (Universe Char)
-initConfig = getConfig <$> some anyChar
-  where
-    getConfig :: String -> Universe Char
-    getConfig = fromList . lines
+initConfig :: Parser [[Char]]
+initConfig = lines <$> some anyChar
 
 defn :: Parser Defn
 defn = stateDefn <|> classDefn <|> nbhdDefn

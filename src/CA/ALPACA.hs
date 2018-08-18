@@ -1,4 +1,6 @@
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE FlexibleContexts          #-}
+{-# LANGUAGE RankNTypes                #-}
 {-# LANGUAGE RecordWildCards           #-}
 {-# LANGUAGE ScopedTypeVariables       #-}
 
@@ -32,8 +34,9 @@ import CA
 -- | The data specified by an ALPACA definition. Existentially quantified over
 -- the number of states.
 data AlpacaData g = forall n. KnownNat n =>
-    AlpacaData { rule       :: StochRule g (Finite n)              -- ^ The rule itself
-               , initConfig :: Maybe (Universe (Finite n))         -- ^ The initial configuration
+    AlpacaData { rule       :: forall u. ComonadStore Point u => StochRule u g (Finite n)
+                 -- ^ The rule itself
+               , initConfig :: Maybe [[Finite n]]                  -- ^ The initial configuration, as a list of rows
                , stateData  :: Finite n -> (String, Maybe Char)    -- ^ Returns the name and representation declaration of each character
                , revLookup  :: Either String Char -> [Finite n]
                  -- ^ Reverse of 'stateData': given a name or a representation declaration, returns the associated state(s).
@@ -42,7 +45,7 @@ data AlpacaData g = forall n. KnownNat n =>
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
 -- with 'Integer' state. Note that if you give the generated 'StochRule' a state
 -- outside the bounds of the original rule, it emits an exception.
-getRule :: AlpacaData g -> StochRule g Integer
+getRule :: ComonadStore Point u => AlpacaData g -> StochRule u g Integer
 getRule (AlpacaData{rule=r}) = fmap getFinite . r . fmap finite
 
 -- | Converts an ALPACA specification to a 'StochRule'. The 'StochRule' returned
@@ -56,13 +59,12 @@ runALPACA = second go . parseALPACA
             error "Error - CA.ALPACA.runALPACA.go.maxState returned a negative number. This is a bug - please report to the package maintainer."
         Just (SomeNat (Proxy :: Proxy n)) ->
             let defns = extractDefns parsed :: Defns n
-                rule  = run defns
-                initConfig = (fmap . fmap) (finite . toInteger) initConfig'
+                initConfig = (fmap . fmap . fmap) (finite . toInteger) initConfig'
                 namesMap = mapKeys (finite . toInteger) names
                 -- Each state SHOULD have a map entry, so it's fine using fromJust
                 stateData = fromJust . (flip lookup namesMap)
                 revLookup = search $ swap <$> toList namesMap
-            in  AlpacaData{..}
+            in  AlpacaData{rule=run defns, ..}  -- `rule` needs to be specified in the record itself - see https://stackoverflow.com/questions/51906524/let-doesnt-work-when-used-with-xrankntypes
       where
         maxState :: ALPACA -> Integer
         maxState (ALPACA ds _) = foldr maxDefn 0 ds

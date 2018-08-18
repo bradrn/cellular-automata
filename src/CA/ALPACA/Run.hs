@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -23,12 +24,12 @@ import CA.Utils (Direction(..))
 
 type Defns n = ([StateDefn (Finite n)], [ClassDefn], [NbhdDefn])
 type DefnsM n g = R.ReaderT (Defns n) (S.Rand g)
-type RulePart n a g = Universe (Finite n) -> DefnsM n a g
+type RulePart n a g = forall u. ComonadStore Point u => u (Finite n) -> DefnsM n a g
 
-run :: forall n g. RandomGen g => (Defns n) -> StochRule g (Finite n)
+run :: forall n g u. (RandomGen g, ComonadStore Point u) => (Defns n) -> StochRule u g (Finite n)
 run defns = flip R.runReaderT defns . run' defns
  where
-   run' :: (Defns n) -> Universe (Finite n) -> DefnsM n g (Finite n)
+   run' :: (Defns n) -> u (Finite n) -> DefnsM n g (Finite n)
    run' (stateDefns, _, _) = withDefault extract (runMany runStateDefn) stateDefns
 
 runStateDefn :: RandomGen g => (StateDefn (Finite n)) -> RulePart n g (Maybe (Finite n))
@@ -117,10 +118,10 @@ matches :: Either StateRef (Name 'ClassType) -> (Finite n) -> RulePart n g Bool
 matches (Left s) s' = \grid -> getRef s grid <&> maybe False (==s')
 matches (Right c) s = const $ inClass c s
 
-explore :: Neighbourhood -> Universe (Finite n) -> [(Finite n)]
+explore :: ComonadStore Point u => Neighbourhood -> u (Finite n) -> [(Finite n)]
 explore nbhd = \grid -> fmap (flip peeksRel grid . moves) nbhd
 
-peeksRel :: Point -> Universe (Finite n) -> (Finite n)
+peeksRel :: ComonadStore Point u => Point -> u (Finite n) -> (Finite n)
 peeksRel (Point x y) = peeks $ \(Point x' y') -> Point (x+x') (y+y')
 
 moves :: [Direction] -> Point

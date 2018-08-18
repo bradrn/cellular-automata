@@ -10,6 +10,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
@@ -81,8 +82,12 @@ instance ComonadStore Point Universe where
     experiment f grid = fmap (flip peek grid) $ f $ pos grid
 
 -- | A convenient type signature for a stochastic cellular automaton update
--- function.
-type StochRule g a = Universe a -> Rand g a
+-- function, where @u@ is the comonadic container data type, @g@ is the random
+-- number generator, and @a@ is the state type. For instance,
+-- @StochRule Point StdGen Int@ would be the type of a CA which acts on a
+-- universe with cells indexed by 'Point', with each cell having type 'Int' and
+-- using a 'StdGen' random number generator.
+type StochRule u g a = u a -> Rand g a
 
 -- | Specifies a portion of a 'Universe'.
 data Bounds = Bounds
@@ -119,8 +124,8 @@ normalize un@(Universe u (Point x y)) = Universe u (Point x' y')
     x' = x `mod` w
     y' = y `mod` h
 
--- | Applies a stochastic evolution function to a 'Universe'.
-evolve :: StochRule g a -> (Universe a -> Rand g (Universe a))
+-- | Converts a 'StochRule' into a function updating @u a@.
+evolve :: (ComonadStore p u, Traversable u) => StochRule u g a -> (u a -> Rand g (u a))
 evolve ca = sequenceA . extend ca
 
 -- | Changes the value of a single 'Point' in a 'Universe'.
