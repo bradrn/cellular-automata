@@ -81,6 +81,11 @@ instance ComonadStore Point Universe where
     seeks f = seek <$> (f . pos) <*> id
     experiment f grid = fmap (flip peek grid) $ f $ pos grid
 
+-- | A convenient type synonym for a non-stochastic cellular automaton update
+-- rule, where @u@ is the comonadic container data type and @a@ is the state
+-- type. It can be converted into a usable function using 'extend'.
+type Rule u a = u a -> a
+
 -- | A convenient type synonym for a stochastic cellular automaton update
 -- function, where @u@ is the comonadic container data type, @g@ is the random
 -- number generator, and @a@ is the state type. For instance,
