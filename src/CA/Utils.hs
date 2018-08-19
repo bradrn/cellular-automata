@@ -1,4 +1,7 @@
+{-# LANGUAGE FlexibleContexts #-}
+
 {-|
+
 Module     : CA.Utils
 Copyright  : (c) Brad Neimann 2017-2018
 License    : MIT
@@ -47,7 +50,7 @@ count p = sum . fmap (bool 0 1 . p)
 -- * Other functions
 
 -- | Conway's Game of Life.
-conwayLife :: Universe Bool -> Bool
+conwayLife :: ComonadStore Point u => u Bool -> Bool
 conwayLife g =
     let surrounds = count id (experiment (moore True) g) in
         case extract g of
