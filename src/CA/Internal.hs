@@ -141,7 +141,7 @@ evolve ca = sequenceA . extend ca
 modifyPoint :: Point -> (a -> a) -> Universe a -> Universe a
 modifyPoint (Point x y) f (Universe u p) = Universe u' p
   where
-    u' = S.adjust' (S.adjust' f (fromIntegral y)) (fromIntegral x) u
+    u' = S.adjust' (S.adjust' f (fromIntegral x)) (fromIntegral y) u
 
 -- * Conversion from and to lists
 
