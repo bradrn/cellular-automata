@@ -34,6 +34,8 @@ instance Arbitrary Bounds where
         boundsBottom <- getSmall <$> arbitrary
         return Bounds{..}
 
+deriving instance Random (Coord x)
+
 tests :: TestTree
 tests = testGroup "CA"
     [ testGroup "Universe"
@@ -54,6 +56,7 @@ tests = testGroup "CA"
         ]
       , testProperty "size works correctly" (prop_size :: NonEmptyList [Int] -> Bool)
       , testProperty "clipInside calculates new bounds correctly" (prop_clipInsideBounds :: Bounds -> Universe Int -> Bool)
+      , testProperty "modifyPoint modifies correct point" (prop_modifyPoint :: Blind (Int -> Int) -> Universe Int -> Property)
       ]
     ]
 
@@ -94,3 +97,11 @@ prop_clipInsideBounds bs u = let (bs', _) = clipInside u bs
                                 (boundsRight  bs' <= boundsRight  bs) &&
                                 (boundsTop    bs' >= boundsTop    bs) &&
                                 (boundsBottom bs' <= boundsBottom bs)
+
+prop_modifyPoint :: Eq a => Blind (a -> a) -> Universe a -> Property
+prop_modifyPoint (Blind f) u = forAll pointInRange $ \p -> peek p (modifyPoint p f u) == f (peek p u)
+  where
+    pointInRange :: Gen Point
+    pointInRange =
+        let (width, height) = size u
+        in Point <$> choose (0, width-1) <*> choose (0, height-1)
