@@ -16,9 +16,9 @@ import qualified Text.Megaparsec.Char.Lexer as L
 
 type Stylesheet = [(Selector, Ruleset)]
 type Ruleset = [Decl]
-data Selector = Class String deriving Show
-data Decl = Fill Color deriving Show
-data Color = RGB Double Double Double deriving Show
+data Selector = Class String deriving (Show, Eq)
+data Decl = Fill Color deriving (Show, Eq)
+data Color = RGB Double Double Double deriving (Show, Eq)
 
 type Parser = Parsec Void String
 
