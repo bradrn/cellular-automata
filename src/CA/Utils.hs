@@ -52,7 +52,7 @@ count p = sum . fmap (bool 0 1 . p)
 -- | Conway's Game of Life.
 conwayLife :: ComonadStore Point u => u Bool -> Bool
 conwayLife g =
-    let surrounds = count id (experiment (moore True) g) in
+    let surrounds = count id (experiment (moore False) g) in
         case extract g of
             False -> if surrounds == 3          then True else False
             True  -> if surrounds `elem` [2, 3] then True else False
