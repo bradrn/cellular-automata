@@ -26,6 +26,7 @@ library
   build-depends:       base          >= 4.7 && < 5
                      , megaparsec    >= 6.3 && < 6.6
                      , containers    >= 0.5 && < 0.6
+                     , deepseq       >= 1.4 && < 1.5
                      , transformers  >= 0.5 && < 0.6
                      , comonad       >= 5.0 && < 5.1
                      , microlens     >= 0.4 && < 0.5

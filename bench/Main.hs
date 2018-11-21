@@ -1,4 +1,3 @@
-{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DerivingStrategies         #-}
@@ -8,22 +7,11 @@
 
 module Main where
 
-import GHC.Generics
-
-import Control.DeepSeq
 import Criterion.Main
 
 import CA
 import CA.Internal (Universe(..))
 import CA.Utils
-
-deriving instance Generic Int
-deriving instance Generic Point
-deriving instance Generic a => Generic (Universe a)
-
-deriving newtype instance NFData (Coord c)
-deriving instance NFData Point
-deriving instance (Generic a, NFData a) => NFData (Universe a)
 
 main :: IO ()
 main = defaultMain $

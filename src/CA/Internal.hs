@@ -2,8 +2,10 @@
 {-# OPTIONS_HADDOCK not-home #-}
 {-# LANGUAGE BangPatterns               #-}
 {-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
 {-# LANGUAGE DeriveFoldable             #-}
 {-# LANGUAGE DeriveFunctor              #-}
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE DeriveTraversable          #-}
 {-# LANGUAGE DerivingStrategies         #-}
 {-# LANGUAGE FlexibleInstances          #-}
@@ -12,6 +14,7 @@
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RankNTypes                 #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE ViewPatterns               #-}
 
@@ -31,10 +34,12 @@ module CA.Internal ( -- * Convenient re-exports
                    , module CA.Internal
                    ) where
 
+import GHC.Generics
 import Data.Foldable (toList)
 
 import Control.Comonad
 import Control.Comonad.Store.Class
+import Control.DeepSeq
 import Control.Monad.Random.Strict hiding (fromList)
 import qualified Data.Sequence as S
 
@@ -44,7 +49,8 @@ import qualified Data.Sequence as S
 data Axis = X | Y
 
 newtype Coord (x :: Axis) = Coord { getCoord :: Int }
-    deriving (Show, Eq, Ord, Num, Enum, Real, Integral)
+    deriving (Show, Eq, Ord, Enum)
+    deriving newtype (Num, Real, Integral)
 
 data Point = Point (Coord X) (Coord Y) deriving (Show, Eq)
 
@@ -80,6 +86,15 @@ instance ComonadStore Point Universe where
     seek p (Universe u _) = Universe u p
     seeks f = seek <$> (f . pos) <*> id
     experiment f grid = fmap (flip peek grid) $ f $ pos grid
+
+-- Generic instances
+
+deriving instance Generic Point
+deriving instance Generic a => Generic (Universe a)
+
+deriving newtype instance NFData (Coord c)
+deriving instance NFData Point
+deriving instance (Generic a, NFData a) => NFData (Universe a)
 
 -- | A convenient type synonym for a non-stochastic cellular automaton update
 -- rule, where @u@ is the comonadic container data type and @a@ is the state
