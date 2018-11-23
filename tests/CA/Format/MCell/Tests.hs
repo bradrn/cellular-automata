@@ -10,10 +10,10 @@ import Test.Tasty
 import Test.Tasty.Golden
 import Test.Tasty.QuickCheck
 
-import CA
+import CA.Universe
 import CA.Format.MCell
 -- For the Arbitrary instances
-import CA.Tests ()
+import CA.Universe.Tests ()
 
 deriving instance Eq Game
 deriving instance Eq Coloring

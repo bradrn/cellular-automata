@@ -38,7 +38,6 @@ import Text.Megaparsec hiding (State)
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 
-import CA
 import CA.Utils (Direction(..))
 
 -- A descriptive type synonym

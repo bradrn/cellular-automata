@@ -29,7 +29,7 @@ import Lens.Micro
 
 import CA.ALPACA.Parse
 import CA.ALPACA.Run
-import CA
+import CA.Universe
 
 -- | The data specified by an ALPACA definition. Existentially quantified over
 -- the number of states.

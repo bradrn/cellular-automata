@@ -6,14 +6,14 @@
 {-# LANGUAGE StandaloneDeriving         #-}
 {-# LANGUAGE TypeApplications           #-}
 
-module CA.Tests (tests) where
+module CA.Universe.Tests (tests) where
 
 import Control.Monad (replicateM)
 
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-import CA
+import CA.Universe
 
 deriving instance Arbitrary (Coord a)
 deriving instance CoArbitrary (Coord a)

@@ -25,7 +25,7 @@ import qualified Text.Megaparsec            as P
 import qualified Text.Megaparsec.Char       as P
 import qualified Text.Megaparsec.Char.Lexer as P
 
-import CA
+import CA.Universe
 
 -- * Types
 

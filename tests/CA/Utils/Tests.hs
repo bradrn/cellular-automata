@@ -3,11 +3,11 @@ module CA.Utils.Tests (tests) where
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
-import CA
+import CA.Universe
 import CA.Utils
 
 -- To import Arbitrary instances
-import CA.Tests ()
+import CA.Universe.Tests ()
 
 tests :: TestTree
 tests = testGroup "CA.Utils"

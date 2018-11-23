@@ -9,8 +9,8 @@ module Main where
 
 import Criterion.Main
 
-import CA
-import CA.Internal (Universe(..))
+import CA.Core
+import CA.Universe.Internal
 import CA.Utils
 
 main :: IO ()

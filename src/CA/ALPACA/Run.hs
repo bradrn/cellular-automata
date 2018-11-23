@@ -19,7 +19,7 @@ import Lens.Micro
 import Lens.Micro.Mtl
 
 import CA.ALPACA.Parse
-import CA
+import CA.Universe
 import CA.Utils (Direction(..))
 
 type Defns n = ([StateDefn (Finite n)], [ClassDefn], [NbhdDefn])

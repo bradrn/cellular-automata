@@ -15,7 +15,9 @@ library
   ghc-options:         -Wall -funfolding-use-threshold=16 -O2 -optc-O3
   hs-source-dirs:      src
   default-language:    Haskell2010
-  exposed-modules:     CA
+  exposed-modules:     CA.Core
+                     , CA.Universe
+                     , CA.Universe.Internal
                      , CA.Internal
                      , CA.Utils
                      , CA.ALPACA
@@ -41,7 +43,7 @@ test-suite tests
   ghc-options:         -Wall -threaded -funfolding-use-threshold=16 -O2 -optc-O3
   hs-source-dirs:      tests
   main-is:             Main.hs
-  other-modules:       CA.Tests
+  other-modules:       CA.Universe.Tests
                      , CA.Utils.Tests
                      , CA.Format.MCell.Tests
   default-language:    Haskell2010

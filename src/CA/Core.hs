@@ -20,50 +20,17 @@ Maintainer : brad.neimann@hotmail.com
 
 Main functionality relating to cellular automata.
 -}
-module CA ( -- * About comonadic cellular automata
-            -- $comonadic
+module CA.Core ( -- * About comonadic cellular automata
+                 -- $comonadic
 
-            -- * Convenient re-exports
-            module Control.Comonad
-          , module Control.Comonad.Store.Class
-          , module Control.Monad.Random.Strict
-            -- * Types
-          , Axis(..)
-          , Coord(..)
-          , Point(..)
-          , Universe
-          , StochRule
-          , Bounds(..)
-          , boundsWidth
-          , boundsHeight
-            -- * Functions on 'Universe'
-          , CA.Internal.fromList
-          , size
-          , evolve
-          , modifyPoint
-
-            -- ** Other functions which Haddock can't document properly
-            --
-            -- | @'extend' :: ('Universe' a -> b) -> 'Universe' a -> 'Universe' b@
-            --
-            -- This function can be used to evolve a 'Universe' by one generation using a
-            -- non-stochastic evolution function.
-            --
-            -- @'extract' :: 'Universe' a -> a@
-            --
-            -- Returns the current focused point.
-            --
-            -- @'experiment' :: 'Functor' f => ('Point' -> f 'Point') -> 'Universe' a -> f a@
-            --
-            -- Given a function which turns the current focused point into a functor (e.g. a
-            -- list) of points, 'experiment' returns the values at these points. Useful with
-            -- the neighbourhood functions from "CA.Utils".
-
-            -- * Conversion from and to lists
-          , render
-          , clip
-          , clipInside
-          ) where
+                 -- * Convenient re-exports
+                 module Control.Comonad
+               , module Control.Comonad.Store.Class
+               , module Control.Monad.Random.Strict
+                 -- * Types
+               , StochRule
+               , evolve
+               ) where
 
 import CA.Internal
 import Control.Comonad
