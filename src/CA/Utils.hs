@@ -26,11 +26,11 @@ import CA.Universe (Point(..))
 -- | Generates a Moore neighbourhood for use with 'experiment'.
 moore :: Bool                -- ^ Whether to include the central point
       -> (Point -> [Point])
-moore True  = pointed [ Point x y
-                      | x <- [-1..1]
-                      , y <- [-1..1]
-                      ]
-moore False = filter (/= Point 0 0) . moore True
+moore center = (\p -> if center then id else filter (/=p)) <*>  -- Filter out center point
+               pointed [ Point x y
+                       | x <- [-1..1]
+                       , y <- [-1..1]
+                       ]
 
 -- | Generates a von Neumann neighbourhood for use with 'experiment'.
 vonNeumann :: Bool                -- ^ Whether to include the central point
