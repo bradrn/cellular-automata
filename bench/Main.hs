@@ -10,7 +10,7 @@ module Main where
 import Criterion.Main
 
 import CA.Core
-import CA.Universe.Internal
+import CA.Universe
 import CA.Utils
 
 main :: IO ()

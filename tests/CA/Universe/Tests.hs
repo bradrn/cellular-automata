@@ -17,7 +17,6 @@ import Test.Tasty
 import Test.Tasty.QuickCheck
 
 import CA.Universe
-import CA.Universe.Internal (Universe(..))
 
 deriving instance Arbitrary (Coord a)
 deriving instance CoArbitrary (Coord a)
