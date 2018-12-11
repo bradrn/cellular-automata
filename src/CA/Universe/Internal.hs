@@ -22,10 +22,10 @@ module CA.Universe.Internal where
 import GHC.Generics
 import Data.Foldable (toList)
 
-import Control.Comonad
-import Control.Comonad.Store.Class
 import Control.DeepSeq
 import qualified Data.Sequence as S
+
+import CA.Core
 
 -- | A type used with -XDataKinds to parameterise 'Coord'.
 data Axis = X | Y
@@ -41,33 +41,30 @@ data Point = Point (Coord X) (Coord Y) deriving (Show, Eq)
 -- __NOTE__: This is indexed using __positive integers__, so the top-left
 -- point is (0, 0) and the bottom-right point is (/m/, /n/).
 --
--- Internally, this is stored as a list of rows and a single \'focused' point,
--- to form a 2D zipper.
-data Universe a = Universe (S.Seq (S.Seq a)) Point
-    deriving (Show, Functor, Foldable, Traversable)
+-- Internally, this is stored as a list of rows.
+newtype Universe a = Universe (S.Seq (S.Seq a))
+    deriving (Eq, Show, Functor, Foldable, Traversable)
 
--- | This instance ignores the foci and just tests the playfields for equality.
-instance Eq a => Eq (Universe a) where
-    (Universe u1 _) == (Universe u2 _) = u1 == u2
-
--- | Allows the evolution of a cellular automaton using the 'extend' method.
-instance Comonad Universe where
-    extract (normalize -> Universe u (Point x y)) = S.index (S.index u (fromIntegral y)) (fromIntegral x)
-    duplicate un@(Universe u p) = Universe u' p
+instance CA Point Universe where
+    peek p un@(Universe u) =
+        let Point x y = wrap p in
+            S.index (S.index u (fromIntegral y)) (fromIntegral x)
       where
-        (getCoord -> w, getCoord -> h) = size un
-        u' = S.fromFunction h $ \y ->
-             S.fromFunction w $ \x ->
-             Universe u (Point (Coord x) (Coord y))
+        wrap (Point x y) =
+            let (w, h) = size un
+            in Point (x `mod` w) (y `mod` h)
 
--- | Gives a few useful utility functions.
-instance ComonadStore Point Universe where
-    pos (normalize -> Universe _ p) = p
-    peek p (Universe u _) = extract $ Universe u p
-    peeks f grid@(pos -> p) = peek (f p) grid
-    seek p (Universe u _) = Universe u p
-    seeks f = seek <$> (f . pos) <*> id
-    experiment f grid = fmap (flip peek grid) $ f $ pos grid
+    evolve fn u =
+        let (w, h) = size u
+        in Universe $
+            fromFunction' h $ \row ->
+                fromFunction' w $ \col ->
+                    fn (Point col row) u
+      where
+        -- A variant of S.fromFunction using Coord for better type
+        -- safety
+        fromFunction' :: Coord x -> (Coord x -> a) -> S.Seq a
+        fromFunction' len f = S.fromFunction (getCoord len) (f . Coord)
 
 -- Generic instances
 
@@ -76,7 +73,7 @@ deriving instance Generic a => Generic (Universe a)
 
 deriving newtype instance NFData (Coord c)
 deriving instance NFData Point
-deriving instance (Generic a, NFData a) => NFData (Universe a)
+deriving newtype instance NFData a => NFData (Universe a)
 
 -- | Specifies a portion of a 'Universe'.
 data Bounds = Bounds
@@ -98,27 +95,18 @@ boundsHeight Bounds{..} = boundsBottom - boundsTop + 1
 
 -- | Returns the width and height of a 'Universe'.
 size :: Universe a -> (Coord 'X, Coord 'Y)
-size (Universe u _) = (Coord $ width u, Coord $ S.length u)
+size (Universe u) = (Coord $ width u, Coord $ S.length u)
   where
     width (v S.:<| _) = S.length v
     width _           = 0
 
--- | Wraps the coordinates of the focus to within the allowed range. Generally
--- you won't need to use this unless you're messing around with the internals of
--- a 'Universe'.
-normalize :: Universe a -> Universe a
-normalize un@(Universe u (Point x y)) = Universe u (Point x' y')
-  where
-    (w, h) = size un
-    x' = x `mod` w
-    y' = y `mod` h
 
 -- | Changes the value of a single 'Point' in a 'Universe'.
 --
 -- __TODO__ The behaviour is /undefined/ in the case when the point is
 -- outside the edges of the 'Universe'. This /is/ a bug and will be fixed later.
 modifyPoint :: Point -> (a -> a) -> Universe a -> Universe a
-modifyPoint (Point x y) f (Universe u p) = Universe u' p
+modifyPoint (Point x y) f (Universe u) = Universe u'
   where
     u' = S.adjust' (S.adjust' f (fromIntegral x)) (fromIntegral y) u
 
@@ -126,11 +114,11 @@ modifyPoint (Point x y) f (Universe u p) = Universe u' p
 
 -- | Converts a list of rows to a 'Universe'.
 fromList :: [[a]] -> Universe a
-fromList l = Universe (fmap S.fromList $ S.fromList $ l) (Point 0 0)
+fromList l = Universe (fmap S.fromList $ S.fromList $ l)
 
 -- | Converts a 'Universe' to a list of rows.
 render :: Universe a -> [[a]]
-render (Universe u _) = toList $ fmap toList u
+render (Universe u) = toList $ fmap toList u
 
 -- | Extracts a portion of a 'Universe' to a list of rows. Wraps around
 -- toroidally if a point outside the edges of the universe has been requested.

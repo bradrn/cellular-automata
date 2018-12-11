@@ -1,5 +1,7 @@
 {-# OPTIONS_GHC -fno-warn-orphans#-}
 {-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE ExplicitForAll             #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE RecordWildCards            #-}
@@ -10,10 +12,12 @@ module CA.Universe.Tests (tests) where
 
 import Control.Monad (replicateM)
 
+import System.Random (Random)
 import Test.Tasty
 import Test.Tasty.QuickCheck
 
 import CA.Universe
+import CA.Universe.Internal (Universe(..))
 
 deriving instance Arbitrary (Coord a)
 deriving instance CoArbitrary (Coord a)
@@ -34,21 +38,23 @@ instance Arbitrary Bounds where
         boundsBottom <- getSmall <$> arbitrary
         return Bounds{..}
 
+deriving newtype instance CoArbitrary a => CoArbitrary (Universe a)
+
+instance CoArbitrary Point where
+    coarbitrary (Point x y) = coarbitrary (x, y)
+
 deriving instance Random (Coord x)
 
 tests :: TestTree
 tests = testGroup "CA"
     [ testGroup "Universe"
-      [ testGroup "Comonad laws"
-        [ testProperty "extract . duplicate      = id"                         (prop_comonad1 :: Universe Int -> Bool)
-        , testProperty "fmap extract . duplicate = id"                         (prop_comonad2 :: Universe Int -> Bool)
-        , testProperty "duplicate . duplicate    = fmap duplicate . duplicate" (prop_comonad3 :: Universe Int -> Bool)
-        ]
-      , testGroup "ComonadStore laws"
-        [ testProperty "x = seek (pos x) x"           (prop_store1 :: Universe Int -> Bool)
-        -- Note that Universe does not satisfy the second law, as it wraps the index to within the range
-        -- , testProperty "y = pos (seek y x)"           (prop_store2 :: Universe Int -> Point -> Bool)
-        , testProperty "seek y x = seek y (seek z x)" (prop_store3 :: Universe Int -> Point -> Point -> Bool)
+      [ testGroup "CA laws"
+        [ testProperty "evolve peek         = id"
+              (prop_ca1 @Universe @Int)
+        , testProperty "peek p (evolve f c) = f p c     (when in bounds)"
+              (prop_ca2 @Int @Int)
+        , testProperty "evolve g . evolve f = evolve (\\p -> g p . evolve f)"
+              (prop_ca3 @Universe @Int @Int @Int)
         ]
       , testGroup "render and fromList"
         [ testProperty "render . fromList = id" (prop_render1 :: [[Int]] -> Bool)
@@ -60,23 +66,26 @@ tests = testGroup "CA"
       ]
     ]
 
-prop_comonad1 :: (Arbitrary (c a), Comonad c, Eq (c a)) => c a -> Bool
-prop_comonad1 c = c == (extract . duplicate $ c)
+prop_ca1 :: forall c a p. (CA p c, Eq (c a)) => c a -> Bool
+prop_ca1 c = c == (evolve peek c)
 
-prop_comonad2 :: (Arbitrary (c a), Comonad c, Eq (c a)) => c a -> Bool
-prop_comonad2 c = c == (fmap extract . duplicate $ c)
+-- Unlike all the other laws, this one is not polymorphic over the
+-- universe type; this is because it must only generate points which
+-- in bounds, but the method of doing this is different for every
+-- universe type.
+prop_ca2 :: forall a b. Eq b => Blind (Point -> Universe a -> b) -> Universe a -> Property
+prop_ca2 (Blind f) c =
+    forAll genInBounds $ \p ->
+        (peek p (evolve f c) == f p c)
+  where
+    genInBounds =
+        let (w, h) = size c in
+                Point
+            <$> choose (0, w-1)
+            <*> choose (0, h-1)
 
-prop_comonad3 :: (Arbitrary (c a), Comonad c, Eq (c (c (c a)))) => c a -> Bool
-prop_comonad3 c = (duplicate . duplicate $ c) == (fmap duplicate . duplicate $ c)
-
-prop_store1 :: (Arbitrary (c a), ComonadStore i c, Eq (c a)) => c a -> Bool
-prop_store1 x = x == seek (pos x) x
-
-prop_store2 :: (Arbitrary (c a), Arbitrary i, ComonadStore i c, Eq i) => c a -> i -> Bool
-prop_store2 x y = y == pos (seek y x)
-
-prop_store3 :: (Arbitrary (c a), Arbitrary i, ComonadStore i c, Eq (c a)) => c a -> i -> i -> Bool
-prop_store3 x y z = seek y x == seek y (seek z x)
+prop_ca3 :: forall u a b c p. (CA p u, Eq (u c)) => Blind (p -> u a -> b) -> Blind (p -> u b -> c) -> u a -> Bool
+prop_ca3 (Blind f) (Blind g) c = evolve (\p -> g p . evolve f) c == (evolve g . evolve f) c
 
 prop_render1 :: (Arbitrary a, Eq a) => [[a]] -> Bool
 prop_render1 u = render (fromList u) == u

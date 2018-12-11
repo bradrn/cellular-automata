@@ -18,7 +18,6 @@ library
   exposed-modules:     CA.Core
                      , CA.Universe
                      , CA.Universe.Internal
-                     , CA.Internal
                      , CA.Utils
                      , CA.ALPACA
                      , CA.ALPACA.Stylesheets
@@ -30,7 +29,6 @@ library
                      , containers    >= 0.5 && < 0.6
                      , deepseq       >= 1.4 && < 1.5
                      , transformers  >= 0.5 && < 0.6
-                     , comonad       >= 5.0 && < 5.1
                      , microlens     >= 0.4 && < 0.5
                      , microlens-mtl >= 0.1 && < 0.2
                      , microlens-th  >= 0.4 && < 0.5
@@ -50,6 +48,7 @@ test-suite tests
   type:                exitcode-stdio-1.0
   build-depends:       base >= 4.7 && < 5
                      , cellular-automata
+                     , random           >= 1.1  && < 1.2
                      , tasty            >= 0.11 && < 1.2
                      , tasty-quickcheck >= 0.9  && < 0.11
                      , tasty-golden     >= 2.3  && < 2.4

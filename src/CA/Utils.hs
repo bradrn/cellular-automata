@@ -42,6 +42,9 @@ vonNeumann center = pointed $ (if center then [Point 0 0] else []) ++ [Point 0 1
 pointed :: [Point] -> (Point -> [Point])
 pointed ps = \(Point x y) -> [ Point (x+dx) (y+dy) | Point dx dy <- ps ]
 
+experiment :: (Functor f, CA p c) => (p -> f p) -> p -> c a -> f a
+experiment f p c = flip peek c <$> f p
+
 -- | Counts the number of values in a 'Foldable' satisfying a condition. Useful
 -- with neighbourhoods e.g. counting the number of live cells in a Moore
 -- neighbourhood using @'count' (==Alive) . 'experiment' ('moore' 'False')@
@@ -51,10 +54,10 @@ count p = sum . fmap (bool 0 1 . p)
 -- * Other functions
 
 -- | Conway's Game of Life.
-conwayLife :: ComonadStore Point u => u Bool -> Bool
-conwayLife g =
-    let surrounds = count id (experiment (moore False) g) in
-        case extract g of
+conwayLife :: CARule Point Bool
+conwayLife p g =
+    let surrounds = count id (fmap (`peek` g) $ (moore False) p) in
+        case peek p g of
             False -> if surrounds == 3          then True else False
             True  -> if surrounds `elem` [2, 3] then True else False
 

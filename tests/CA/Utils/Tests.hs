@@ -18,5 +18,5 @@ tests = testGroup "CA.Utils"
     , testProperty "pointed returns right points" (\ps -> pointed ps (Point 0 0) == ps)
     ]
 
-prop_nbhd :: (Point -> [Point]) -> Int -> (Universe Int -> Bool)
-prop_nbhd nbhd n = \ca -> length (experiment nbhd ca) == n
+prop_nbhd :: (Point -> [Point]) -> Int -> (Point -> Universe Int -> Bool)
+prop_nbhd nbhd n = \p ca -> length (flip peek ca <$> nbhd p) == n
