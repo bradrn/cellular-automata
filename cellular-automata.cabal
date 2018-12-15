@@ -16,6 +16,7 @@ library
   hs-source-dirs:      src
   default-language:    Haskell2010
   exposed-modules:     CA.Core
+                     , CA.Types
                      , CA.Universe
                      , CA.Utils
                      , CA.ALPACA

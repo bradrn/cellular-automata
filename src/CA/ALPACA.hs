@@ -31,7 +31,7 @@ import Lens.Micro
 import CA.ALPACA.Parse
 import CA.ALPACA.Run
 import CA.Core
-import CA.Universe
+import CA.Types
 
 -- | The data specified by an ALPACA definition. Existentially quantified over
 -- the number of states.

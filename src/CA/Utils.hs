@@ -14,7 +14,7 @@ module CA.Utils where
 import Data.Bool (bool)
 
 import CA.Core
-import CA.Universe (Point(..))
+import CA.Types (Point(..))
 
 -- * Neighbourhoods
 --
