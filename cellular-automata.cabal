@@ -15,8 +15,9 @@ library
   ghc-options:         -Wall -funfolding-use-threshold=16 -O2 -optc-O3
   hs-source-dirs:      src
   default-language:    Haskell2010
-  exposed-modules:     CA
-                     , CA.Internal
+  exposed-modules:     CA.Core
+                     , CA.Types
+                     , CA.Universe
                      , CA.Utils
                      , CA.ALPACA
                      , CA.ALPACA.Stylesheets
@@ -28,7 +29,6 @@ library
                      , containers    >= 0.5 && < 0.6
                      , deepseq       >= 1.4 && < 1.5
                      , transformers  >= 0.5 && < 0.6
-                     , comonad       >= 5.0 && < 5.1
                      , microlens     >= 0.4 && < 0.5
                      , microlens-mtl >= 0.1 && < 0.2
                      , microlens-th  >= 0.4 && < 0.5
@@ -41,13 +41,14 @@ test-suite tests
   ghc-options:         -Wall -threaded -funfolding-use-threshold=16 -O2 -optc-O3
   hs-source-dirs:      tests
   main-is:             Main.hs
-  other-modules:       CA.Tests
+  other-modules:       CA.Universe.Tests
                      , CA.Utils.Tests
                      , CA.Format.MCell.Tests
   default-language:    Haskell2010
   type:                exitcode-stdio-1.0
   build-depends:       base >= 4.7 && < 5
                      , cellular-automata
+                     , random           >= 1.1  && < 1.2
                      , tasty            >= 0.11 && < 1.2
                      , tasty-quickcheck >= 0.9  && < 0.11
                      , tasty-golden     >= 2.3  && < 2.4

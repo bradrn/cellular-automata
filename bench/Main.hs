@@ -9,8 +9,8 @@ module Main where
 
 import Criterion.Main
 
-import CA
-import CA.Internal (Universe(..))
+import CA.Core
+import CA.Universe
 import CA.Utils
 
 main :: IO ()
@@ -20,7 +20,7 @@ main = defaultMain $
     , bPatternsWith "conwayLife" conwayLife
     ]
 
-bPatternsWith :: String -> (Universe Bool -> Bool) -> Benchmark
+bPatternsWith :: String -> (Point -> Universe Bool -> Bool) -> Benchmark
 bPatternsWith name rule =
     bgroup name
         [ benchIters "block"      block      rule
@@ -28,24 +28,24 @@ bPatternsWith name rule =
         , benchIters "rPentomino" rPentomino rule
         ]
 
-benchIters :: String -> Universe Bool -> (Universe Bool -> Bool) -> Benchmark
+benchIters :: String -> Universe Bool -> (Point -> Universe Bool -> Bool) -> Benchmark
 benchIters name u rule = bgroup name $ benchn <$> [1, 100, 200, 300, 400, 500]
   where
     benchn :: Int -> Benchmark
-    benchn n = bench (show n) $ nf (extendN n rule) u
+    benchn n = bench (show n) $ nf (evolveN n rule) u
 
-extendN :: Comonad w => Int -> (w a -> a) -> (w a -> w a)
-extendN n w = applyN (extend w)
+evolveN :: CA p w => Int -> (p -> w a -> a) -> (w a -> w a)
+evolveN n w = applyN (evolve w)
   where
     applyN f = foldr (.) id (replicate n f)
 
 -- | The trivial rule
-trivial :: Comonad w => w Bool -> Bool
-trivial = const False
+trivial :: CA p w => p -> w Bool -> Bool
+trivial = const $ const False
 
 -- | The identity rule
-identity :: Comonad w => w a -> a
-identity = extract
+identity :: CA p w => p -> w a -> a
+identity = peek
 
 -- | Converts a list of rows to a 'Universe' of 'Bool's. Each row is
 -- itself a list if integers, with @0@ being converted to 'False' and

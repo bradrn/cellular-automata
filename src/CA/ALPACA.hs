@@ -23,18 +23,20 @@ import Data.Proxy
 import Data.Tuple (swap)
 import GHC.TypeLits
 
+import Control.Monad.Random.Strict (RandomGen, Rand)
 import Data.Finite
 import Data.Map.Strict (Map, mapKeys, lookup, toList)
 import Lens.Micro
 
 import CA.ALPACA.Parse
 import CA.ALPACA.Run
-import CA
+import CA.Core
+import CA.Types
 
 -- | The data specified by an ALPACA definition. Existentially quantified over
 -- the number of states.
 data AlpacaData g = forall n. KnownNat n =>
-    AlpacaData { rule       :: forall u. ComonadStore Point u => StochRule u g (Finite n)
+    AlpacaData { rule       :: CARuleA (Rand g) Point (Finite n)
                  -- ^ The rule itself
                , initConfig :: Maybe [[Finite n]]                  -- ^ The initial configuration, as a list of rows
                , stateData  :: Finite n -> (String, Maybe Char)    -- ^ Returns the name and representation declaration of each character
@@ -45,8 +47,8 @@ data AlpacaData g = forall n. KnownNat n =>
 -- | A convenience function to convert the rule in an 'AlpacaData' to a rule
 -- with 'Integer' state. Note that if you give the generated 'StochRule' a state
 -- outside the bounds of the original rule, it emits an exception.
-getRule :: ComonadStore Point u => AlpacaData g -> StochRule u g Integer
-getRule (AlpacaData{rule=r}) = fmap getFinite . r . fmap finite
+getRule :: AlpacaData g -> CARuleA (Rand g) Point Integer
+getRule (AlpacaData{rule=r}) = \p -> fmap getFinite . r p . fmap finite
 
 -- | Converts an ALPACA specification to a 'StochRule'. The 'StochRule' returned
 -- operates on a 'Finite' state (existentially protected using 'SomeRule').

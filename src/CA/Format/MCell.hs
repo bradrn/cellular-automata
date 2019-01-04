@@ -13,6 +13,7 @@ Encoding and decoding the [MCell file format](http://psoup.math.wisc.edu/mcell/c
 module CA.Format.MCell where
 
 import Control.Arrow ((>>>), (&&&))
+import Control.Monad ((<=<), join)
 import Data.Bifunctor (bimap)
 import Data.Char (ord, isSpace, chr)
 import Data.List (groupBy, group, intercalate)
@@ -25,7 +26,8 @@ import qualified Text.Megaparsec            as P
 import qualified Text.Megaparsec.Char       as P
 import qualified Text.Megaparsec.Char.Lexer as P
 
-import CA
+import CA.Types
+import CA.Universe (render, fromList)
 
 -- * Types
 
