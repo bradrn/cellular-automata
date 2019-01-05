@@ -82,7 +82,7 @@ type Neighbourhood = [[Direction]]
 type Parser = ParsecT Void String (S.State State)
 
 parseALPACA :: String -> Either String (ALPACA, Map.Map Int (String, Maybe Char))
-parseALPACA = bimap parseErrorPretty (with names) . flip S.evalState 0 . runParserT alpaca ""
+parseALPACA = bimap errorBundlePretty (with names) . flip S.evalState 0 . runParserT alpaca ""
   where
     with :: (a -> b) -> a -> (a, b)
     with f a = (a, f a)
@@ -140,7 +140,7 @@ alpaca = between sc eof $ do
         firstWith p = getFirst . foldMap (First . p)
 
 initConfig :: Parser [[Char]]
-initConfig = lines <$> some anyChar
+initConfig = lines <$> some anySingle
 
 defn :: Parser Defn
 defn = stateDefn <|> classDefn <|> nbhdDefn
@@ -149,7 +149,7 @@ defn = stateDefn <|> classDefn <|> nbhdDefn
         try $ symbol "state"
         state <- lift S.get
         n <- name
-        dispChar <- lexeme $ optional ((char '"') *> anyChar <* char ('"'))
+        dispChar <- lexeme $ optional ((char '"') *> anySingle <* char ('"'))
         members <- many classRef
         rules <- sepBy rule (symbol ",")
         lift $ S.modify (+1)
