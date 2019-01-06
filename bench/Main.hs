@@ -55,7 +55,11 @@ identity = peek
 mkGrid :: [[Int]] -> Universe Bool
 mkGrid = fmap (==1) . fromList . expandSides 14 0
 
-expandSides :: Int -> a -> [[a]] -> [[a]]
+-- | Adds a border around a 2D list.
+expandSides :: Int    -- ^ Width of the border
+            -> a      -- ^ Value to use for the border
+            -> [[a]]
+            -> [[a]]
 expandSides n val u = filler ++ (fmap addToSides u) ++ filler
   where
     width = length $ head u
