@@ -58,7 +58,8 @@ mkGrid = fmap (==1) . fromList . expandSides 14 0
 expandSides :: Int -> a -> [[a]] -> [[a]]
 expandSides n val u = filler ++ (fmap addToSides u) ++ filler
   where
-    filler = (replicate n $ replicate n val)
+    width = length $ head u
+    filler = replicate n $ replicate (n+width+n) val
     addToSides r = (replicate n val) ++ r ++ (replicate n val)
 
 block :: Universe Bool
