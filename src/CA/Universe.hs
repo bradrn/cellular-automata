@@ -3,9 +3,10 @@
 
 module CA.Universe (module CA.Types, module CA.Universe) where
 
-import Data.Foldable (toList)
+import Data.Functor ((<&>))
 
-import qualified Data.Sequence as S
+import Data.Array ((!), (//))
+import qualified Data.Array as A
 
 import CA.Core
 import CA.Types
@@ -33,19 +34,36 @@ boundsHeight Bounds{..} = boundsBottom - boundsTop + 1
 -- __TODO__ The behaviour is /undefined/ in the case when the point is
 -- outside the edges of the 'Universe'. This /is/ a bug and will be fixed later.
 modifyPoint :: Point -> (a -> a) -> Universe a -> Universe a
-modifyPoint (Point x y) f (Universe u) = Universe u'
+modifyPoint p f (Universe u) = Universe u'
   where
-    u' = S.adjust' (S.adjust' f (fromIntegral x)) (fromIntegral y) u
+    u' = u // [(p, f (u ! p))]
 
 -- * Conversion from and to lists
 
--- | Converts a list of rows to a 'Universe'.
+-- | Converts a list of rows to a 'Universe'. Assumes that each row is
+-- the same length and that there is at least one row.
 fromList :: [[a]] -> Universe a
-fromList l = Universe (fmap S.fromList $ S.fromList $ l)
+fromList l =
+    Universe $ A.array (Point 0 0,hi) assocs
+  where
+    hi = Point (Coord $ length (head l) - 1) (Coord $ length l - 1)
+
+    assocs = concat $ imap (\y -> imap $ \x val -> (Point x y, val)) l
+      where
+        imap :: (Coord x -> a -> b) -> [a] -> [b]
+        imap f = go 0
+          where
+            go n (x:xs) = (f n x):(go (n+1) xs)
+            go _ []     = []
 
 -- | Converts a 'Universe' to a list of rows.
 render :: Universe a -> [[a]]
-render (Universe u) = toList $ fmap toList u
+render (Universe u) =
+    (fmap.fmap) (u !) (coords $ A.bounds u)
+  where
+    coords :: (Point, Point) -> [[Point]]
+    coords (Point lo_x lo_y, Point hi_x hi_y) =
+        [lo_y..hi_y] <&> (\y -> flip Point y <$> [lo_x..hi_x])
 
 -- | Extracts a portion of a 'Universe' to a list of rows. Wraps around
 -- toroidally if a point outside the edges of the universe has been requested.

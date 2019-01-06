@@ -15,6 +15,7 @@ import Control.Monad (replicateM)
 import System.Random (Random)
 import Test.Tasty
 import Test.Tasty.QuickCheck
+import Test.QuickCheck.Instances.Array ()
 
 import CA.Universe
 
@@ -56,10 +57,12 @@ tests = testGroup "CA"
               (prop_ca3 @Universe @Int @Int @Int)
         ]
       , testGroup "render and fromList"
-        [ testProperty "render . fromList = id" (prop_render1 :: [[Int]] -> Bool)
-        , testProperty "fromList . render = id" (prop_render2 :: Universe Int -> Bool)
+        -- Commented out until we figure out how to generate a list with each row the same length
+        -- [ testProperty "render . fromList = id" (prop_render1 :: [[Int]] -> Bool)
+        [ testProperty "fromList . render = id" (prop_render2 :: Universe Int -> Bool)
         ]
-      , testProperty "size works correctly" (prop_size :: NonEmptyList [Int] -> Bool)
+      -- Commented out until we figure out how to generate a list with each row the same length
+      -- , testProperty "size works correctly" (prop_size :: NonEmptyList [Int] -> Bool)
       , testProperty "clipInside calculates new bounds correctly" (prop_clipInsideBounds :: Bounds -> Universe Int -> Bool)
       , testProperty "modifyPoint modifies correct point" (prop_modifyPoint :: Blind (Int -> Int) -> Universe Int -> Property)
       ]
@@ -86,18 +89,17 @@ prop_ca2 (Blind f) c =
 prop_ca3 :: forall u a b c p. (CA p u, Eq (u c)) => Blind (p -> u a -> b) -> Blind (p -> u b -> c) -> u a -> Bool
 prop_ca3 (Blind f) (Blind g) c = evolve (\p -> g p . evolve f) c == (evolve g . evolve f) c
 
-prop_render1 :: (Arbitrary a, Eq a) => [[a]] -> Bool
-prop_render1 u = render (fromList u) == u
+-- prop_render1 :: (Arbitrary a, Eq a) => [[a]] -> Bool
+-- prop_render1 u = render (fromList u) == u
 
 prop_render2 :: (Arbitrary a, Eq a) => Universe a -> Bool
 prop_render2 u = fromList (render u) == u
 
--- NonEmptyList is used for convenience so head won't error
-prop_size :: NonEmptyList [a] -> Bool
-prop_size (NonEmpty l) = (Coord w, Coord h) == size (fromList l)
-  where
-    w = length (head l)
-    h = length l
+-- prop_size :: NonEmptyList [a] -> Bool
+-- prop_size (NonEmpty l) = (Coord w, Coord h) == size (fromList l)
+--   where
+--     w = length (head l)
+--     h = length l
 
 prop_clipInsideBounds :: Arbitrary a => Bounds -> Universe a -> Bool
 prop_clipInsideBounds bs u = let (bs', _) = clipInside u bs
