@@ -19,24 +19,13 @@ library
                      , CA.Types
                      , CA.Universe
                      , CA.Utils
-                     , CA.ALPACA
-                     , CA.ALPACA.Stylesheets
                      , CA.Format.MCell
-  other-modules:       CA.ALPACA.Parse
-                     , CA.ALPACA.Run
   build-depends:       base          >= 4.7 && < 5
                      , array         >= 0.5 && < 0.6
                      , megaparsec    >= 6.3 && < 6.6
-                     , containers    >= 0.5 && < 0.6
                      , deepseq       >= 1.4 && < 1.5
-                     , transformers  >= 0.5 && < 0.6
-                     , microlens     >= 0.4 && < 0.5
-                     , microlens-mtl >= 0.1 && < 0.2
-                     , microlens-th  >= 0.4 && < 0.5
-                     , MonadRandom   >= 0.5 && < 0.6
                      , split         >= 0.2 && < 0.3
                      , safe          >= 0.3 && < 0.4
-                     , finite-typelits >= 0.1 && < 0.2
 
 test-suite tests
   ghc-options:         -Wall -threaded -funfolding-use-threshold=16 -O2 -optc-O3
