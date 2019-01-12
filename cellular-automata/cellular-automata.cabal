@@ -1,15 +1,13 @@
 name:                cellular-automata
 version:             0.1.0.0
 synopsis:            A generic cellular automaton simulation library.
--- description:
--- homepage:            https://github.com/githubuser/cellular-automata#readme
+homepage:            https://github.com/bradrn/cellular-automata#readme
 license:             MIT
 license-file:        LICENSE
 author:              Brad Neimann
 copyright:           (c) 2017-2019 Brad Neimann
 build-type:          Simple
 cabal-version:       >=1.10
--- extra-source-files:  README.md
 
 library
   ghc-options:         -Wall -funfolding-use-threshold=16 -O2 -optc-O3

@@ -1,8 +1,12 @@
 name:                cellular-automata-alpaca
 version:             0.1.0.0
 synopsis:            A package to interpret cellular automata written in ALPACA.
--- description:
--- homepage:            https://github.com/githubuser/cellular-automata#readme
+description:
+    A parser and interpreter for the ALPACA cellular automaton specification
+    language and stylesheet.
+    .
+    This package is intended to be used with the cellular-automata library.
+homepage:            https://github.com/bradrn/cellular-automata#readme
 license:             MIT
 license-file:        LICENSE
 author:              Brad Neimann
