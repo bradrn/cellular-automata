@@ -6,7 +6,7 @@ synopsis:            A package to interpret cellular automata written in ALPACA.
 license:             MIT
 license-file:        LICENSE
 author:              Brad Neimann
-copyright:           2017 Brad Neimann
+copyright:           (c) 2017-2019 Brad Neimann
 build-type:          Simple
 cabal-version:       >=1.10
 -- extra-source-files:  README.md
