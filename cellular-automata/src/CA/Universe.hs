@@ -72,7 +72,7 @@ clip u Bounds{..} = (fmap . fmap) (flip peek u) ps
   where
     -- Creates a nested array of Points, with the 2D index corresponding to the
     -- row and column at which the point is found
-    ps = fmap (\mkPoint -> fmap mkPoint [boundsTop..boundsBottom]) $ fmap Point [boundsLeft..boundsRight]
+    ps = fmap (\mkPoint -> fmap mkPoint [boundsLeft..boundsRight]) $ fmap (flip Point) [boundsTop..boundsBottom]
 
 -- | Similar to 'clip', but instead of 'wrapping around' toroidally if a point
 -- outside the edges of the universe has been requested, it stops at the edge of
