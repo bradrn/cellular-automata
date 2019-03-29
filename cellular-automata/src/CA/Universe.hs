@@ -29,14 +29,23 @@ boundsHeight Bounds{..} = boundsBottom - boundsTop + 1
 
 -- * Functions on 'Universe'
 
--- | Changes the value of a single 'Point' in a 'Universe'.
---
--- __TODO__ The behaviour is /undefined/ in the case when the point is
--- outside the edges of the 'Universe'. This /is/ a bug and will be fixed later.
+-- | Changes the value of a single 'Point' in a 'Universe'. If the
+-- point is out of bounds, do nothing.
 modifyPoint :: Point -> (a -> a) -> Universe a -> Universe a
-modifyPoint p f (Universe u) = Universe u'
+modifyPoint p f un@(Universe u) =
+    if (A.inRange (A.bounds u) p)
+    then Universe u'
+    else un
   where
     u' = u // [(p, f (u ! p))]
+
+-- | Changes the value of a single 'Point' in a 'Universe'. If the
+-- point is out of bounds, wrap around (like 'peek' does).
+modifyPointWrap :: Point -> (a -> a) -> Universe a -> Universe a
+modifyPointWrap (Point x y) f un@(Universe u) =
+    let (width, height) = size un
+        p' = Point (x `mod` width) (y `mod` height)
+    in Universe $ u // [(p', f (u ! p'))]
 
 -- * Conversion from and to lists
 

@@ -64,7 +64,14 @@ tests = testGroup "CA"
       -- Commented out until we figure out how to generate a list with each row the same length
       -- , testProperty "size works correctly" (prop_size :: NonEmptyList [Int] -> Bool)
       , testProperty "clipInside calculates new bounds correctly" (prop_clipInsideBounds :: Bounds -> Universe Int -> Bool)
-      , testProperty "modifyPoint modifies correct point" (prop_modifyPoint :: Blind (Int -> Int) -> Universe Int -> Property)
+      , testGroup "modifying points"
+        [ testProperty "modifyPoint modifies correct point"
+              (prop_modifyPoint :: Blind (Int -> Int) -> Universe Int -> Property)
+        , testProperty "modifyPoint doesn't modify correct points"
+              (prop_don'tModifyPoint :: Point -> Universe Int -> Property)
+        , testProperty "modifyPointWrap modifies correct point"
+              (prop_modifyPointWrap :: Point -> Blind (Int -> Int) -> Universe Int -> Bool)
+        ]
       ]
     ]
 
@@ -108,6 +115,9 @@ prop_clipInsideBounds bs u = let (bs', _) = clipInside u bs
                                 (boundsTop    bs' >= boundsTop    bs) &&
                                 (boundsBottom bs' <= boundsBottom bs)
 
+prop_modifyPointWrap :: Eq a => Point -> Blind (a -> a) -> Universe a -> Bool
+prop_modifyPointWrap p (Blind f) u = peek p (modifyPointWrap p f u) == f (peek p u)
+
 prop_modifyPoint :: Eq a => Blind (a -> a) -> Universe a -> Property
 prop_modifyPoint (Blind f) u = forAll pointInRange $ \p -> peek p (modifyPoint p f u) == f (peek p u)
   where
@@ -115,3 +125,12 @@ prop_modifyPoint (Blind f) u = forAll pointInRange $ \p -> peek p (modifyPoint p
     pointInRange =
         let (width, height) = size u
         in Point <$> choose (0, width-1) <*> choose (0, height-1)
+
+prop_don'tModifyPoint :: (Eq a, Num a) => Point -> Universe a -> Property
+prop_don'tModifyPoint p u =
+    pointNotInRange p ==> peek p (modifyPoint p (+1) u) == peek p u
+  where
+    pointNotInRange :: Point -> Bool
+    pointNotInRange (Point x y) =
+        let (width, height) = size u
+        in (x < 0) || (x >= width) || (y < 0) || (y >= height)
