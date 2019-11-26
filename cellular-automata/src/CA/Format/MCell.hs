@@ -24,7 +24,7 @@ import Safe (readMay, toEnumMay)
 
 import qualified CA.Format.Combinators as P
 import CA.Types
-import CA.Universe (render, fromList)
+import CA.Universe (toList, fromList)
 
 -- * Types
 
@@ -120,7 +120,7 @@ encodeMCell MCell{..} = concat $ catMaybes
     showEnum addOne = show . (if addOne then (+1) else id) . fromEnum
 
     toRLE :: Universe Int -> String
-    toRLE = intercalate "$" . fmap processRow  . render
+    toRLE = intercalate "$" . fmap processRow  . toList
       where
         processRow = concatMap (\(r, v) -> (if r == 1 then "" else show r) ++ toChars v) . runEncode . stripDead
 

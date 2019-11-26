@@ -66,8 +66,8 @@ fromList l =
             go _ []     = []
 
 -- | Converts a 'Universe' to a list of rows.
-render :: Universe a -> [[a]]
-render (Universe u) =
+toList :: Universe a -> [[a]]
+toList (Universe u) =
     (fmap.fmap) (u !) (coords $ A.bounds u)
   where
     coords :: (Point, Point) -> [[Point]]
