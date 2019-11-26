@@ -35,7 +35,7 @@ identifier :: Parser String
 identifier = lexeme $ (:) <$> letterChar <*> many alphaNumChar
 
 parseStylesheet :: String -> Either String Stylesheet
-parseStylesheet = first parseErrorPretty . runParser stylesheet ""
+parseStylesheet = first errorBundlePretty . runParser stylesheet ""
 
 stylesheet :: Parser Stylesheet
 stylesheet = many ruleset

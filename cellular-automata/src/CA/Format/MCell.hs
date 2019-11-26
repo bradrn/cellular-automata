@@ -15,17 +15,14 @@ module CA.Format.MCell where
 import Control.Arrow ((>>>), (&&&))
 import Control.Monad ((<=<), join)
 import Data.Bifunctor (bimap)
-import Data.Char (ord, isSpace, chr)
+import Data.Char (isUpper, isLower, ord, isSpace, chr)
 import Data.List (groupBy, group, intercalate)
 import Data.Maybe (fromMaybe, mapMaybe, catMaybes, maybeToList)
-import Data.Void (Void)
 
 import Data.List.Split (splitOn)
 import Safe (readMay, toEnumMay)
-import qualified Text.Megaparsec            as P
-import qualified Text.Megaparsec.Char       as P
-import qualified Text.Megaparsec.Char.Lexer as P
 
+import qualified CA.Format.Combinators as P
 import CA.Types
 import CA.Universe (render, fromList)
 
@@ -188,7 +185,7 @@ decodeMCell str = do
         in fmap (\m -> take maxlen $ m ++ repeat 0) l
 
     parseBoard :: String -> Maybe (Int, Int)
-    parseBoard = P.parseMaybe @Void $ (,) <$> P.decimal <* P.char 'x' <*> P.decimal
+    parseBoard = P.runParser' $ (,) <$> P.decimal <* P.char 'x' <*> P.decimal
 
     parseUniverse :: Maybe (Int, Int) -> String -> Maybe (Universe Int)
     parseUniverse (fmap fst -> height) u =
@@ -197,12 +194,12 @@ decodeMCell str = do
         in (fromList . padEdge height) <$> parsed
       where
         parseRow :: String -> Maybe [Int]
-        parseRow = (fmap concat .) $ P.parseMaybe $
+        parseRow = (fmap concat .) $ P.runParser' $
             P.many ((replicate <$> P.decimal <*> parseState) P.<|> fmap pure parseState)
 
-        parseState :: P.Parsec Void String Int
+        parseState :: P.Parser Int
         parseState = (0 <$ P.char '.')
-               P.<|> (decodeState <$> P.optional P.lowerChar <*> P.upperChar)
+               P.<|> (decodeState <$> P.optional (P.select isLower) <*> (P.select isUpper))
           where
             decodeState p s = maybe 0 ((24*).(subtract 96).ord) p + (ord s - 64)
 
