@@ -25,11 +25,11 @@ library
                      , CA.ALPACA.Run
   build-depends:       base          >= 4.7 && < 5
                      , cellular-automata
-                     , megaparsec    >= 7.0 && < 7.1
+                     , megaparsec    >= 7.0 && < 8.1
                      , containers    >= 0.5 && < 0.7
                      , transformers  >= 0.5 && < 0.6
                      , microlens     >= 0.4 && < 0.5
-                     , microlens-mtl >= 0.1 && < 0.2
+                     , microlens-mtl >= 0.1 && < 0.3
                      , microlens-th  >= 0.4 && < 0.5
                      , MonadRandom   >= 0.5 && < 0.6
                      , finite-typelits >= 0.1 && < 0.2
